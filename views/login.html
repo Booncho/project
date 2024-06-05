@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login with Google</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .btn-google {
+            text-decoration: none;
+            color: white;
+            background-color: #4285F4;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 20px;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .btn-google:hover {
+            background-color: #1a73e8;
+        }
+
+        .btn-switch {
+            text-decoration: none;
+            color: white;
+            background-color: #FF5733;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 20px;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .btn-switch:hover {
+            background-color: #e64a19;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <h1>Login with Google</h1>
+        <a href="/auth/google" class="btn btn-google">Login with Google</a>
+        <br>
+        <br>
+        <br>
+        <!-- เพิ่มลิงก์หรือปุ่มสำหรับการสลับบัญชี -->
+        <a href="/switchaccount" class="btn btn-switch">Switch Account</a>
+    </div>
+    <!-- Bootstrap JS (Optional) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

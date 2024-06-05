@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <!-- เรียกใช้งาน Bootstrap CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/public/user.css" rel="stylesheet">
+  <!-- เพิ่ม CSS สำหรับการปรับแต่ง -->
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-md-6 offset-md-3">
+        <div class="card">
+          <div class="card-header">
+            <h1 class="text-center">User Profile</h1>
+          </div>
+          <div class="card-body">
+            <p><strong>ชื่อ - นามสกุล</strong> <%= user.displayName %></p>
+            <!-- เพิ่ม ID ให้กับ <p> ที่แสดง Email -->
+              <p id="userEmail"><strong>รหัสนักศึกษา :</strong> <%= user.email.split('@')[0] %></p>
+
+            <!-- เพิ่มปุ่มดูผลการเรียน -->
+            <a href="/transcript" class="btn btn-primary btn-sm">ผลการเรียน</a>
+            <!-- เพิ่มปุ่มล็อคเอาท์ -->
+            <a href="/logout" class="btn btn-danger btn-sm ml-2">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- เรียกใช้งาน Bootstrap JS และ jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

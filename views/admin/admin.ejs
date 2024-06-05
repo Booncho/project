@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        h5 {
+            color: #007bff;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+
+        .list-group-item {
+            background-color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            padding: 15px 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .list-group-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .btn-logout {
+            background-color: #dc3545;
+            border: none;
+            border-radius: 5px;
+            color: #ffffff;
+            padding: 10px 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background-color: #c82333;
+            color: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h5 class="mt-4">จัดการระบบแนะนำการเลือกศึกษาหลักสูตรระดับปริญญาตรีสาขาวิชาวิทยาการคอมพิวเตอร์ ด้วยเทคนิคโครงข่ายประสาทเทียม</h5>
+        <ul class="list-group">
+            <li class="list-group-item"><a href="/managemodel">จัดการโมเดล</a></li>
+            <li class="list-group-item"><a href="/managedata">จัดการข้อมูลพยากรณ์</a></li>
+        </ul>
+        <a href="/logout" class="btn btn-logout btn-sm ml-2 mt-2 mb-2">ออกจากระบบ</a>
+    </div>
+</body>
+
+</html>
