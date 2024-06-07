@@ -28,12 +28,14 @@ const User = mongoose.model('User', UserSchema);
 const DataSchema = new mongoose.Schema({
   studentId: String,
   name: String,
+  gender: String, // New field
+  educationLevel: String, // New field
   grade1: String,
   grade2: String,
   grade3: String,
 });
 
-const DataModel = mongoose.model('Upload', DataSchema);
+const DataModel = mongoose.model('upload', DataSchema);
 
 // Setup multer for file uploads
 const upload = multer({ dest: 'uploads/' });
@@ -57,7 +59,7 @@ passport.use(new GoogleStrategy({
   clientID: '39160225463-vea5s59jqecaa5css9copf53523silp2.apps.googleusercontent.com',
   clientSecret: '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',
   callbackURL: 'http://localhost:3000/auth/google/callback'
-  },
+},
   async (accessToken, refreshToken, profile, done) => {
     try {
       let user = await User.findOne({ googleId: profile.id });
@@ -106,9 +108,42 @@ app.get('/importdata', (req, res) => {
   res.sendFile(path.join(__dirname, 'views/import.html'));
 });
 
-app.get('/userprofile', (req, res) => {
-  res.render('user/user', { user: req.user });
+app.get('/userprofile', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).send('Unauthorized');
+  }
+
+  try {
+    const email = req.user.email;
+    let studentId = email.split('@')[0];
+
+    // Ensure the studentId is formatted correctly with a hyphen before the last digit
+    if (studentId.length >= 12) {
+      studentId = studentId.slice(0, 11) + '-' + studentId.slice(11);
+    }
+
+    // Fetch user details from the "uploaddata" collection
+    const userData = await DataModel.findOne({ studentId });
+    
+    // Ensure user data exists
+    if (!userData) {
+      return res.status(404).send('User data not found');
+    }
+
+    const profileData = {
+      displayName: req.user.displayName,
+      email: req.user.email,
+      gender: userData.gender || 'N/A',
+      educationLevel: userData.educationLevel || 'N/A'
+    };
+
+    res.render('user/user', { user: profileData });
+  } catch (err) {
+    console.error('Error fetching user details:', err);
+    res.status(500).send('Error fetching user details');
+  }
 });
+
 
 app.get('/logout', (req, res) => {
   req.logout(() => {
@@ -149,7 +184,6 @@ app.get('/uploadeddata', async (req, res) => {
   }
 });
 
-// Handle CSV file upload and save data to MongoDB
 app.post('/uploaddata', upload.single('csvFile'), async (req, res) => {
   console.log('File uploaded successfully:', req.file);
   const filePath = path.join(__dirname, req.file.path);
@@ -157,7 +191,7 @@ app.post('/uploaddata', upload.single('csvFile'), async (req, res) => {
 
   try {
     // Read the CSV file and push data into the results array
-    fs.createReadStream(filePath)
+    fs.createReadStream(filePath, { encoding: 'utf8' }) // Ensure utf8 encoding is specified here
       .pipe(csvParser())
       .on('data', (data) => {
         // Create a new object with trimmed keys and values
@@ -174,18 +208,18 @@ app.post('/uploaddata', upload.single('csvFile'), async (req, res) => {
         const grade1 = cleanedData['ไทย'] || '';
         const grade2 = cleanedData['อังกฤษ'] || '';
         const grade3 = cleanedData['คณิตศาสตร์'] || '';
+        const gender = cleanedData['เพศ'] || ''; // New field
+        const educationLevel = cleanedData['วุฒิการศึกษา'] || ''; // New field
 
-        // Log the raw data and cleaned values for debugging
-        console.log('Raw data:', data);
-        console.log('Cleaned values:', { studentId, name, grade1, grade2, grade3 });
-
-        if (studentId && name && grade1 && grade2 && grade3) {
+        if (studentId && name && grade1 && grade2 && grade3 && gender && educationLevel) {
           const formattedData = {
             studentId: String(studentId),
             name: String(name),
             grade1: String(grade1),
             grade2: String(grade2),
             grade3: String(grade3),
+            gender: String(gender), // Add gender field
+            educationLevel: String(educationLevel), // Add educationLevel field
           };
           results.push(formattedData);
         } else {
@@ -235,7 +269,7 @@ app.get('/auth/google/callback', passport.authenticate('google', { failureRedire
   }
 });
 
-//Route for shie grade 
+//Route for show grade 
 app.get('/usergrades', async (req, res) => {
   if (!req.user) {
     return res.status(401).send('Unauthorized');
@@ -255,6 +289,7 @@ app.get('/usergrades', async (req, res) => {
         { subject: 'ไทย', grade: studentData.grade1 },
         { subject: 'อังกฤษ', grade: studentData.grade2 },
         { subject: 'คณิตศาสตร์', grade: studentData.grade3 }
+
       ];
       res.json(grades);
     } else {
@@ -265,7 +300,6 @@ app.get('/usergrades', async (req, res) => {
     res.status(500).send('Error fetching student grades');
   }
 });
-
 
 // Start the server
 app.listen(port, () => {
