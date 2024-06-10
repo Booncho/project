@@ -8,10 +8,38 @@ const csvParser = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
 const connectDB = require('./configs/db');
-
+const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
 const ADMIN_EMAIL = '645021001120@mail.rmutk.ac.th';
+
+const { MongoClient } = require('mongodb');
+
+// URI ของ MongoDB Atlas
+const uri = "mongodb+srv://chanakit:Ausry11043123@cluster0.ex9po.mongodb.net/uploads";
+
+// ตัวเลือกการเชื่อมต่อ
+const clientOptions = { useNewUrlParser: true, useUnifiedTopology: true };
+
+// เชื่อมต่อกับ MongoDB Atlas
+try {
+  // Connect to MongoDB with options to suppress warnings
+  MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
+    if (err) {
+      console.error('Error connecting to MongoDB:', err);
+      return;
+    }
+    console.log('Connected to MongoDB');
+    
+    // Perform operations on the connected database here
+    
+    // Don't forget to close the connection when done
+    client.close();
+  });
+} catch (error) {
+  console.error('An error occurred during MongoDB connection:', error);
+}
+
 
 // Connect to MongoDB
 connectDB();
@@ -33,12 +61,24 @@ const DataSchema = new mongoose.Schema({
   grade1: String,
   grade2: String,
   grade3: String,
+  fileName: String,
 });
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      cb(null, 'uploads'); // กำหนดโฟลเดอร์ 'uploads' เป็นสถานที่เก็บไฟล์
+  },
+  filename: function (req, file, cb) {
+      cb(null, file.originalname); // ใช้ชื่อไฟล์เดิม
+  }
+});
+
+const upload = multer({ dest: 'uploads/' });
 
 const DataModel = mongoose.model('upload', DataSchema);
 
 // Setup multer for file uploads
-const upload = multer({ dest: 'uploads/' });
+
 
 // Setup EJS as the template engine
 app.set('view engine', 'ejs');
@@ -53,7 +93,7 @@ app.use(session({
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
-
+app.use(bodyParser.json());
 // Configure Google OAuth 2.0
 passport.use(new GoogleStrategy({
   clientID: '39160225463-vea5s59jqecaa5css9copf53523silp2.apps.googleusercontent.com',
@@ -186,71 +226,72 @@ app.get('/uploadeddata', async (req, res) => {
 
 app.post('/uploaddata', upload.single('csvFile'), async (req, res) => {
   console.log('File uploaded successfully:', req.file);
-  const filePath = path.join(__dirname, req.file.path);
+  const filePath = path.join(__dirname, 'uploads', req.file.filename); // ปรับเส้นทางของไฟล์ที่จะเก็บ
   const results = [];
 
   try {
-    // Read the CSV file and push data into the results array
-    fs.createReadStream(filePath, { encoding: 'utf8' }) // Ensure utf8 encoding is specified here
-      .pipe(csvParser())
-      .on('data', (data) => {
-        // Create a new object with trimmed keys and values
-        const cleanedData = {};
-        for (const key in data) {
-          if (data.hasOwnProperty(key)) {
-            cleanedData[key.trim()] = data[key].trim();
-          }
-        }
+      // Read the CSV file and push data into the results array
+      fs.createReadStream(req.file.path, { encoding: 'utf8' }) // Ensure utf8 encoding is specified here
+          .pipe(csvParser())
+          .on('data', (data) => {
+              // Create a new object with trimmed keys and values
+              const cleanedData = {};
+              for (const key in data) {
+                  if (data.hasOwnProperty(key)) {
+                      cleanedData[key.trim()] = data[key].trim();
+                  }
+              }
 
-        // Check if required fields exist
-        const studentId = cleanedData['รหัสนักศึกษา'] || '';
-        const name = cleanedData['ชื่อ-สกุล'] || '';
-        const grade1 = cleanedData['ไทย'] || '';
-        const grade2 = cleanedData['อังกฤษ'] || '';
-        const grade3 = cleanedData['คณิตศาสตร์'] || '';
-        const gender = cleanedData['เพศ'] || ''; // New field
-        const educationLevel = cleanedData['วุฒิการศึกษา'] || ''; // New field
+              // Check if required fields exist
+              const studentId = cleanedData['รหัสนักศึกษา'] || '';
+              const name = cleanedData['ชื่อ-สกุล'] || '';
+              const grade1 = cleanedData['ไทย'] || '';
+              const grade2 = cleanedData['อังกฤษ'] || '';
+              const grade3 = cleanedData['คณิตศาสตร์'] || '';
+              const gender = cleanedData['เพศ'] || ''; // New field
+              const educationLevel = cleanedData['วุฒิการศึกษา'] || ''; // New field
 
-        if (studentId && name && grade1 && grade2 && grade3 && gender && educationLevel) {
-          const formattedData = {
-            studentId: String(studentId),
-            name: String(name),
-            grade1: String(grade1),
-            grade2: String(grade2),
-            grade3: String(grade3),
-            gender: String(gender), // Add gender field
-            educationLevel: String(educationLevel), // Add educationLevel field
-          };
-          results.push(formattedData);
-        } else {
-          console.error('Missing fields:', data);
-        }
-      })
-      .on('end', async () => {
-        try {
-          console.log('Formatted data:', results); // Debug log for formatted data
+              if (studentId && name && grade1 && grade2 && grade3 && gender && educationLevel) {
+                  const formattedData = {
+                      studentId: String(studentId),
+                      name: String(name),
+                      grade1: String(grade1),
+                      grade2: String(grade2),
+                      grade3: String(grade3),
+                      gender: String(gender), // Add gender field
+                      educationLevel: String(educationLevel), // Add educationLevel field
+                      fileName: req.file.originalname,
+                  };
+                  results.push(formattedData);
+              } else {
+                  console.error('Missing fields:', data);
+              }
+          })
+          .on('end', async () => {
+              try {
+                  console.log('Formatted data:', results); // Debug log for formatted data
 
-          if (results.length > 0) {
-            // Save data to MongoDB
-            await DataModel.insertMany(results);
-            console.log('Data successfully saved to MongoDB');
-          } else {
-            console.log('No valid data to save');
-          }
+                  if (results.length > 0) {
+                      // Save data to MongoDB
+                      await DataModel.insertMany(results);
+                      console.log('Data successfully saved to MongoDB');
+                  } else {
+                      console.log('No valid data to save');
+                  }
 
-          // Remove the uploaded CSV file
-          fs.unlinkSync(filePath);
+                  // Remove the uploaded CSV file
+                  fs.unlinkSync(req.file.path);
 
-          // Send response to the client
-          res.status(200).json({ success: true, message: 'File uploaded and data saved successfully' });
-        } catch (err) {
-          console.error('Error saving data to MongoDB:', err);
-          res.status(500).json({ success: false, message: 'Error saving data to database' });
-        }
-      });
+                  // Send response to the client
+                  res.status(200).json({ success: true, message: 'File uploaded and data saved successfully' });
+              } catch (err) {
+                  console.error('Error saving data to MongoDB:', err);
+                  res.status(500).json({ success: false, message: 'Error saving data to database' });
+              }
+          });
   } catch (err) {
-    console.error('Error uploading file:', err);
-    res.status(500).json({ success: false, message: 'Error uploading file' });
+      console.error('Error uploading file:', err);
+      res.status(500).json({ success: false, message: 'Error uploading file' });
   }
 });
 
@@ -268,6 +309,8 @@ app.get('/auth/google/callback', passport.authenticate('google', { failureRedire
     res.send('<script>alert("กรุณาใช้เมลของมหาวิทยาลัยเทคโนโลยีราชมงคลกรุงเทพเท่านั้น"); window.location.href = "/";</script>');
   }
 });
+
+
 
 //Route for show grade 
 app.get('/usergrades', async (req, res) => {
@@ -300,6 +343,25 @@ app.get('/usergrades', async (req, res) => {
     res.status(500).send('Error fetching student grades');
   }
 });
+
+app.post('/deletefile', async (req, res) => {
+  try {
+      const fileName = req.body.fileName; // Assuming the file name is sent in the request body
+
+      if (!fileName) {
+          return res.status(400).json({ success: false, message: 'File name is required' });
+      }
+
+      // Delete the file data from MongoDB by file name
+      await DataModel.deleteMany({ fileName });
+
+      res.status(200).json({ success: true, message: 'File data deleted successfully' });
+  } catch (err) {
+      console.error('Error deleting file data:', err);
+      res.status(500).json({ success: false, message: 'Error deleting file data' });
+  }
+});
+
 
 // Start the server
 app.listen(port, () => {

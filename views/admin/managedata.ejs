@@ -131,41 +131,45 @@
         }
 
         function addFileRow(file) {
-            const tbody = document.getElementById('fileTableBody');
-            const tr = document.createElement('tr');
-            const nameTd = document.createElement('td');
-            const dateTd = document.createElement('td');
-            const manageTd = document.createElement('td');
+    const tbody = document.getElementById('fileTableBody');
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td');
+    const dateTd = document.createElement('td');
+    const manageTd = document.createElement('td');
 
-            nameTd.textContent = file.name;
-            dateTd.textContent = new Date(file.date).toLocaleString();
+    nameTd.textContent = file.name;
+    dateTd.textContent = new Date(file.date).toLocaleString();
 
-            const editButton = document.createElement('button');
-            const deleteButton = document.createElement('button');
+    const editButton = document.createElement('button');
+    const deleteButton = document.createElement('button');
 
-            editButton.textContent = 'แก้ไข';
-            editButton.className = 'btn btn-sm btn-primary mr-2';
-            editButton.addEventListener('click', function() {
-                editRow(tr);
-            });
+    editButton.textContent = 'แก้ไข';
+    editButton.className = 'btn btn-sm btn-primary mr-2';
+    editButton.addEventListener('click', function() {
+        editRow(tr);
+    });
 
-            deleteButton.textContent = 'ลบ';
-            deleteButton.className = 'btn btn-sm btn-danger';
-            deleteButton.addEventListener('click', function() {
-                tr.remove();
-                saveUploadedData();
-                console.log("Deleted file:", file.name);
-            });
+    deleteButton.textContent = 'ลบ';
+    deleteButton.className = 'btn btn-sm btn-danger';
+    deleteButton.addEventListener('click', function() {
+        // Call deleteFile function to delete the file
+        deleteFile(file.name);
+        // Remove the row from the table after deleting the file
+        tr.remove();
+        saveUploadedData();
+        console.log("Deleted file:", file.name);
+    });
 
-            manageTd.appendChild(editButton);
-            manageTd.appendChild(deleteButton);
+    manageTd.appendChild(editButton);
+    manageTd.appendChild(deleteButton);
 
-            tr.appendChild(nameTd);
-            tr.appendChild(dateTd);
-            tr.appendChild(manageTd);
+    tr.appendChild(nameTd);
+    tr.appendChild(dateTd);
+    tr.appendChild(manageTd);
 
-            tbody.appendChild(tr);
-        }
+    tbody.appendChild(tr);
+}
+
 
         document.getElementById('csvFile').addEventListener('change', function(event) {
             const inputFile = event.target;
@@ -307,6 +311,32 @@
             localStorage.setItem('uploadedData', JSON.stringify(uploadedData));
         }
         
+    </script>
+    <script>
+        function deleteFile(fileName) {
+    fetch('/deletefile', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ fileName: fileName }) // ส่งชื่อไฟล์เป็น JSON
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('File deleted successfully');
+            document.getElementById('notification').innerHTML = '<p style="color: green;">File deleted successfully</p>';
+        } else {
+            console.error('File deletion failed');
+            document.getElementById('notification').innerHTML = '<p style="color: red;">File deletion failed</p>';
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting file:', error);
+        document.getElementById('notification').innerHTML = '<p style="color: red;">Error deleting file</p>';
+    });
+}
+
     </script>
 </body>
 </html>
