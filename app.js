@@ -22,23 +22,18 @@ const uri = "mongodb+srv://chanakit:Ausry11043123@cluster0.ex9po.mongodb.net/upl
 const clientOptions = { useNewUrlParser: true, useUnifiedTopology: true };
 
 // เชื่อมต่อกับ MongoDB Atlas
-try {
-  // Connect to MongoDB with options to suppress warnings
-  MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
-    if (err) {
-      console.error('Error connecting to MongoDB:', err);
-      return;
-    }
-    console.log('Connected to MongoDB');
-    
-    // Perform operations on the connected database here
-    
-    // Don't forget to close the connection when done
-    client.close();
-  });
-} catch (error) {
-  console.error('An error occurred during MongoDB connection:', error);
-}
+MongoClient.connect(uri, { useNewUrlParser: false, useUnifiedTopology: false }, (err, client) => {
+  if (err) {
+    console.error('Error connecting to MongoDB:', err);
+    return;
+  }
+  console.log('Connected to MongoDB');
+  
+  // ทำสิ่งที่ต้องการทำกับฐานข้อมูลที่เชื่อมต่อได้ที่นี่
+  
+  // หลังจากทำงานเสร็จสิ้น อย่าลืมปิดการเชื่อมต่อ
+  client.close();
+});
 
 
 // Connect to MongoDB
